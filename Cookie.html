@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Catch the Cookie!</title>
     <style>
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -23,6 +24,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            touch-action: none; /* Prevents mobile pull-to-refresh & scrolling */
         }
 
         #score-container {
@@ -50,6 +52,8 @@
             /* Smooth transitions for moving and resizing */
             transition: top 0.1s ease-out, left 0.1s ease-out, transform 0.1s ease;
             z-index: 5;
+            padding: 10px; /* Touch target pad */
+            touch-action: manipulation;
         }
 
         .cookie-img {
@@ -102,7 +106,10 @@
 </head>
 <body>
 
-    <div id="score-container">Score: 0</div>
+    <div id="score-container">
+        <div>Score: <span id="score">0</span></div>
+        <div style="font-size: 1.1rem; opacity: 0.8; margin-top: 4px;">High Score: <span id="high-score">0</span></div>
+    </div>
 
     <div id="box">
         <img class="cookie-img"
@@ -119,21 +126,30 @@
     <script>
         const box = document.getElementById("box");
         const cookieImg = document.querySelector(".cookie-img");
-        const scoreText = document.getElementById("score-container");
+        const scoreText = document.getElementById("score");
+        const highScoreText = document.getElementById("high-score");
+        
+        const STORAGE_KEY = "cookie_high_score";
         let score = 0;
+        let highScore = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
+
+        function updateScoreDisplay() {
+            scoreText.textContent = score;
+            highScoreText.textContent = highScore;
+        }
 
         function moveBox() {
             // Define layout paddings so the cookie doesn't hide behind elements
-            const topPadding = 110;  // Area below the score counter
+            const topPadding = 140;  // Area below the score counter
             const bottomPadding = 65; // Area above the footer
             
             // Get current dimensions of the cookie bounding box
-            const boxWidth = box.offsetWidth;
-            const boxHeight = box.offsetHeight;
+            const boxWidth = box.offsetWidth || 180;
+            const boxHeight = box.offsetHeight || 180;
 
             // Calculate safe available space
-            const maxX = window.innerWidth - boxWidth;
-            const maxY = window.innerHeight - boxHeight - bottomPadding;
+            const maxX = Math.max(10, window.innerWidth - boxWidth - 10);
+            const maxY = Math.max(topPadding, window.innerHeight - boxHeight - bottomPadding);
 
             // Generate safe coordinates
             const randomX = Math.max(10, Math.floor(Math.random() * maxX));
@@ -147,7 +163,13 @@
         function handleCatch(e) {
             e.preventDefault();
             score++;
-            scoreText.textContent = "Score: " + score;
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem(STORAGE_KEY, highScore.toString());
+            }
+
+            updateScoreDisplay();
 
             // Difficulty: Shrink the cookie slightly every 3 points (caps at 90px min height)
             const currentSize = Math.max(90, 180 - (Math.floor(score / 3) * 10));
@@ -161,6 +183,7 @@
 
         // Run on initial load
         window.addEventListener("load", () => {
+            updateScoreDisplay();
             moveBox();
         });
 
