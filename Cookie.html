@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Cookie!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            background: #fdf6ec; /* Soft cream background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #score-container {
+            margin-top: 20px;
+            background: rgba(139, 94, 60, 0.1);
+            border: 2px solid #8b5e3c;
+            color: #5c3a21;
+            text-align: center;
+            border-radius: 50px;
+            padding: 10px 40px;
+            font-size: 2rem;
+            font-weight: bold;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        #box {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Smooth transitions for moving and resizing */
+            transition: top 0.1s ease-out, left 0.1s ease-out, transform 0.1s ease;
+            z-index: 5;
+        }
+
+        .cookie-img {
+            /* Base responsive size */
+            height: 180px; 
+            width: auto;
+            max-width: 40vw;
+            transition: transform 0.1s ease, filter 0.2s ease;
+            pointer-events: none; /* Let parent #box handle interactions */
+        }
+
+        #box:hover .cookie-img {
+            filter: drop-shadow(0 8px 12px rgba(92, 58, 33, 0.3));
+            transform: scale(1.05);
+        }
+
+        #box:active .cookie-img {
+            transform: scale(0.9);
+        }
+
+        footer {
+            background: #8b5e3c;
+            width: 100%;
+            height: 45px;
+            color: #fdf6ec;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            font-size: 14px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            padding: 0 20px;
+            z-index: 10;
+        }
+
+        footer a {
+            color: #ffe0b2;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px dashed #ffe0b2;
+        }
+        
+        footer a:hover {
+            color: #ffffff;
+            border-bottom-style: solid;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="score-container">Score: 0</div>
+
+    <div id="box">
+        <img class="cookie-img"
+             src="https://clipart-library.com/2023/cookie-png-transparent-images-background-23.png"
+             alt="Cookie">
+    </div>
+
+    <footer>
+        <span>by rusidevelops</span>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rusi.develop.edits@gmail.com&su=Game%20Feedback&body=Hi%20there%2C%20I%20want%20to%20contact%20you"
+           target="_blank">Gmail</a>
+    </footer>
+
+    <script>
+        const box = document.getElementById("box");
+        const cookieImg = document.querySelector(".cookie-img");
+        const scoreText = document.getElementById("score-container");
+        let score = 0;
+
+        function moveBox() {
+            // Define layout paddings so the cookie doesn't hide behind elements
+            const topPadding = 110;  // Area below the score counter
+            const bottomPadding = 65; // Area above the footer
+            
+            // Get current dimensions of the cookie bounding box
+            const boxWidth = box.offsetWidth;
+            const boxHeight = box.offsetHeight;
+
+            // Calculate safe available space
+            const maxX = window.innerWidth - boxWidth;
+            const maxY = window.innerHeight - boxHeight - bottomPadding;
+
+            // Generate safe coordinates
+            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(topPadding, Math.floor(Math.random() * maxY));
+
+            // Apply positions
+            box.style.left = `${randomX}px`;
+            box.style.top = `${randomY}px`;
+        }
+
+        function handleCatch(e) {
+            e.preventDefault();
+            score++;
+            scoreText.textContent = "Score: " + score;
+
+            // Difficulty: Shrink the cookie slightly every 3 points (caps at 90px min height)
+            const currentSize = Math.max(90, 180 - (Math.floor(score / 3) * 10));
+            cookieImg.style.height = `${currentSize}px`;
+
+            moveBox();
+        }
+
+        // 'pointerdown' natively handles both mouse clicks and mobile touches perfectly
+        box.addEventListener("pointerdown", handleCatch);
+
+        // Run on initial load
+        window.addEventListener("load", () => {
+            moveBox();
+        });
+
+        // Reposition correctly if user resizes screen or flips mobile orientation
+        window.addEventListener("resize", moveBox);
+    </script>
+
+</body>
+</html>
